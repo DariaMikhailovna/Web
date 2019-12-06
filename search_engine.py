@@ -54,6 +54,7 @@ def main():
     is_rec = input('Введите да, если хотите запустить рекурсивный поиск и нет, если не рекурсивный:')
     if not max_links_count.isdigit():
         print('Количество должно быть числом')
+        exit()
     else:
         max_links_count = int(max_links_count)
     if is_rec == 'да':
