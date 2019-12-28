@@ -1,12 +1,24 @@
 from enum import Enum
 import random
-from collections import defaultdict
 
 
 class WinState(Enum):
     NA = 0
     WIN = 1
     LOSE = 2
+    DISQUALIFIED = 3
+
+
+grid_pattern = '''\
+  +--+--+--+--+--+--+--+--+--+
+a |..|..|..|..|..|..|..|..|..|
+  +--+--+--+--+--+--+--+--+--+
+b |..|..|..|..|..|..|..|..|..|
+  +--+--+--+--+--+--+--+--+--+
+c |..|..|..|..|..|..|..|..|..|
+  +--+--+--+--+--+--+--+--+--+
+    1  2  3  4  5  6  7  8  9 \
+'''
 
 
 class Master:
@@ -14,8 +26,8 @@ class Master:
         self.valid_numbers = list(range(1, 90))
         self.curr_number = None
 
-    def is_honest(self, numb):
-        if numb == self.curr_number:
+    def is_honest(self, number):
+        if number == self.curr_number:
             return True
         else:
             return False
@@ -29,37 +41,15 @@ class Master:
         return len(self.valid_numbers)
 
     @staticmethod
-    def get_tickets(count):
+    def get_tickets():
         tickets = []
-        while len(tickets) < count:
-            ticket = Ticket()
-            is_repeat = False
-            for t in tickets:
-                count_math = 0
-                for numb in ticket.numbers:
-                    if numb in t.numbers:
-                        count_math += 1
-                if count_math == 15:
-                    is_repeat = True
-                    break
-            if not is_repeat:
-                tickets.append(ticket)
-        for ticket in tickets:
-            var = [['a', 'b', 'c'] for _ in range(10)]
-            for numb in ticket.numbers:
-                if numb < 10:
-                    i = (numb - 1) // 10
-                else:
-                    i = numb // 10
-                tmp = random.choice(var[i])
-                var[i].remove(tmp)
-                index = ticket.grid.index(tmp) + 3 * (i + 1)
-                if numb < 10:
-                    numb = '0' + str(numb)
-                else:
-                    numb = str(numb)
-                ticket.grid = ticket.grid[:index] + numb + ticket.grid[index + 2:]
-
+        ticket1 = Ticket()
+        tickets.append(ticket1)
+        while True:
+            ticket2 = Ticket()
+            if ticket1.numbers != ticket2.numbers:
+                tickets.append(ticket2)
+                break
         return tickets
 
 
@@ -67,42 +57,74 @@ class Player:
     def __init__(self, ticket):
         self.ticket = ticket
 
-    def move(self, coords):
-        self.ticket.cross_out(coords)
+    def move(self, coords, master):
+        number = self.ticket.cross_out(coords)
+        if number:
+            return master.is_honest(number)
+        else:
+            return True
+#
+#
+# class HumanPlayer(Player):
+#     def move(self, curr_number):
+#         pass
+#
+#
+# class ComputerPlayer(Player):
+#     def move(self, curr_number):
+#         pass
 
 
 class Ticket:
+    row_labels = ['a', 'b', 'c']
+    column_labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+
     def __init__(self):
-        self.numbers = []
-        by_first_digit = defaultdict(int)
         valid_numbers = list(range(1, 90))
-        while len(self.numbers) < 15:
-            numb = random.choice(valid_numbers)
-            if by_first_digit[numb // 10] < 3:
-                by_first_digit[numb // 10] += 1
-                valid_numbers.remove(numb)
-                self.numbers.append(numb)
-        with open('ticket.txt', 'r') as f:
-            self.grid = f.read()
+        self.numbers = [[None] * 9 for _ in range(3)]
+        for i in range(len(self.numbers)):
+            count = 0
+            while count < 5:
+                j = random.randint(0, 8)
+                while not self.numbers[i][j]:
+                    number = random.randint(j * 10 + 1, j * 10 + 10)
+                    if number in valid_numbers:
+                        self.numbers[i][j] = number
+                        count += 1
+                        valid_numbers.remove(number)
 
     def __str__(self):
-        return self.grid
+        grid = grid_pattern
+        for i in range(len(self.numbers)):
+            for j in range(len(self.numbers[i])):
+                if not self.numbers[i][j]:
+                    continue
+                index = 31 * ((i + 1) * 2 - 1) + (j + 1) * 3
+                if type(self.numbers[i][j]) == int and self.numbers[i][j] < 10:
+                    numb = '0' + str(self.numbers[i][j])
+                else:
+                    numb = str(self.numbers[i][j])
+                grid = grid[:index] + numb + grid[index + 2:]
+        return grid
 
     def cross_out(self, coords):
-        if coords[0] not in ['a', 'b', 'c'] or coords[1] not in ['1', '2', '3', '4', '5', '6', '7', '8', '9']:
+        if coords[0] not in self.row_labels or coords[1] not in self.column_labels:
             print('Вы ввели неверные координаты')
             return
-        index = self.grid.index(coords[0]) + 3 * int(coords[1])
-        numb = int(self.grid[index:index + 2])
-        # if Master.is_honest(numb, self):
-        #     self.numbers.remove(numb)
-        self.grid = self.grid[:index] + 'XX' + self.grid[index + 2:]
+        i = self.row_labels.index(coords[0])
+        j = self.column_labels.index(coords[1])
+        number = self.numbers[i][j]
+        if type(number) != int:
+            print('Вы ввели неверные координаты')
+            return
+        self.numbers[i][j] = 'XX'
+        return number
 
 
 class Game:
     def __init__(self):
         self.master = Master()
-        tickets = Master.get_tickets(2)
+        tickets = Master.get_tickets()
         self.ticket = tickets[0]
         self.player = Player(tickets[1])
         self.win_state = WinState.NA
@@ -112,43 +134,48 @@ class Game:
 
     def move(self, coords):
         if coords != 0:
-            self.player.move(coords)
-        if self.master.curr_number in self.ticket.numbers:
-            self.ticket.numbers.remove(self.master.curr_number)
-            index = self.ticket.grid.index(str(self.master.curr_number))
-            self.ticket.grid = self.ticket.grid[:index] + 'XX' + self.ticket.grid[index + 2:]
+            if not self.player.move(coords, self.master):
+                self.win_state = WinState.DISQUALIFIED
+
+        for i in range(len(self.ticket.numbers)):
+            for j in range(len(self.ticket.numbers[i])):
+                if self.master.curr_number == self.ticket.numbers[i][j]:
+                    self.ticket.numbers[i][j] = 'XX'
+                    break
         if len(self.ticket.numbers) == 0:
             self.win_state = WinState.LOSE
         if len(self.player.ticket.numbers) == 0:
             self.win_state = WinState.WIN
 
-
-def main():
-    game = Game()
-    print('Добро пожаловать в игру ЛОТО!')
-    print('Сверху находится билет противника, а снизу Ваш')
-    print('Я буду крутить барабан и печатать выпадающие числа')
-    print('А Вы должны вводить координаты чисел, которые хотите зачеркнуть')
-    print('(координаты вида а2: буква - строка, цифра - колонка')
-    print('(напечатайте 0 если ничего не нужно зачеркивать)')
-    print('По правилам, зачеркивать можно только выпавшие числа')
-    print('Но Вы можете мухлевать, а я могу это заметить')
-    print('Ну, поехали!')
-    while True:
-        if game.master.get_count_valid_numbers == 0:
-            print('Числа в барабане кончились, ничья!')
-            break
-        if game.win_state == WinState.WIN:
-            print('YOU WIN')
-            break
-        if game.win_state == WinState.LOSE:
-            print('GAME OVER')
-            break
-        print(game)
-        print(f'Следующее число: {game.master.next_number()}')
-        coords = input('Введите координаты для зачеркивания: ')
-        game.move(coords)
+    def run(self):
+        print('Добро пожаловать в игру ЛОТО!')
+        print('Сверху находится билет противника, а снизу Ваш')
+        print('Я буду крутить барабан и печатать выпадающие числа')
+        print('А Вы должны вводить координаты чисел, которые хотите зачеркнуть')
+        print('(координаты вида а2: буква - строка, цифра - колонка')
+        print('(напечатайте 0 если ничего не нужно зачеркивать)')
+        print('По правилам, зачеркивать можно только выпавшие числа')
+        print('Но Вы можете мухлевать, а я могу это заметить')
+        print('Ну, поехали!')
+        while True:
+            if self.master.get_count_valid_numbers == 0:
+                print('Числа в барабане кончились, ничья!')
+                break
+            if self.win_state == WinState.WIN:
+                print('YOU WIN')
+                break
+            if self.win_state == WinState.LOSE:
+                print('YOU LOSE')
+                break
+            if self.win_state == WinState.DISQUALIFIED:
+                print('DISQUALIFIED')
+                print('Вас впоймали на жульничестве')
+                break
+            print(self)
+            print(f'Следующее число: {self.master.next_number()}')
+            coords = input('Введите координаты для зачеркивания: ')
+            self.move(coords)
 
 
 if __name__ == '__main__':
-    main()
+    Game().run()
