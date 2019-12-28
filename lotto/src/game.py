@@ -14,39 +14,32 @@ class Game:
     def __init__(self):
         self.master = Master()
         tickets = Master.get_tickets()
-        self.human_player = HumanPlayer(tickets[0])
-        self.computer_player = ComputerPlayer(tickets[1])
+        self.players = []
+        self.players.append(HumanPlayer(tickets[0]))
+        self.players.append(ComputerPlayer(tickets[1]))
         self.win_state = WinState.NA
 
     def __str__(self):
-        return 'Билет противника:' + '\n' + str(self.computer_player.ticket) + '\n' + 'Ваш билет:' + '\n' + str(self.human_player.ticket)
+        return '\n'.join(map(str, self.players))
 
-    def player_move(self, player, number):
-        player.move(number)
-        return self.master.is_honest(number)
+    def player_move(self, player, curr_number):
+        number = player.move(curr_number)
+        if number:
+            return self.master.is_honest(number)
+        return True
 
-    def move(self, coords):
-        if coords[0] not in self.human_player.ticket.row_labels or coords[1] not in self.human_player.ticket.column_labels:
-            print('Вы ввели неверные координаты')
-            return
-        if coords != 0:
-            i = self.human_player.ticket.row_labels.index(coords[0])
-            j = self.human_player.ticket.column_labels.index(coords[1])
-            number = self.human_player.ticket.numbers[i][j]
-            if type(number) != int:
-                print('Вы ввели неверные координаты')
-                return
-            if not self.player_move(self.human_player, number):
+    def move(self):
+        for player in self.players:
+            if not self.player_move(player, self.master.curr_number):
                 self.win_state = WinState.DISQUALIFIED
-        self.player_move(self.computer_player, self.master.curr_number)
-        if len(self.computer_player.ticket.numbers) == 0:
-            self.win_state = WinState.LOSE
-        if len(self.human_player.ticket.numbers) == 0:
-            self.win_state = WinState.WIN
+            if len(player.ticket.numbers) == 0:
+                if type(player) is HumanPlayer:
+                    self.win_state = WinState.WIN
+                else:
+                    self.win_state = WinState.LOSE
 
     def run(self):
         print('Добро пожаловать в игру ЛОТО!')
-        print('Сверху находится билет противника, а снизу Ваш')
         print('Я буду крутить барабан и печатать выпадающие числа')
         print('А Вы должны вводить координаты чисел, которые хотите зачеркнуть')
         print('(координаты вида а2: буква - строка, цифра - колонка')
@@ -71,8 +64,7 @@ class Game:
                 break
             print(self)
             print(f'Следующее число: {self.master.next_number()}')
-            coords = input('Введите координаты для зачеркивания: ')
-            self.move(coords)
+            self.move()
 
 
 if __name__ == '__main__':
