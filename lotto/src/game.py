@@ -22,15 +22,15 @@ class Game:
     def __str__(self):
         return '\n'.join(map(str, self.players))
 
-    def player_move(self, player, curr_number):
+    def __player_move(self, player, curr_number):
         number = player.move(curr_number)
         if number:
             return self.master.is_honest(number)
         return True
 
-    def move(self):
+    def _move(self):
         for player in self.players:
-            if not self.player_move(player, self.master.curr_number):
+            if not self.__player_move(player, self.master.curr_number):
                 self.win_state = WinState.DISQUALIFIED
             if len(player.ticket.numbers) == 0:
                 if type(player) is HumanPlayer:
@@ -64,7 +64,7 @@ class Game:
                 break
             print(self)
             print(f'Следующее число: {self.master.next_number()}')
-            self.move()
+            self._move()
 
 
 if __name__ == '__main__':

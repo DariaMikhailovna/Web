@@ -7,10 +7,7 @@ class Master:
         self.curr_number = None
 
     def is_honest(self, number):
-        if number == self.curr_number:
-            return True
-        else:
-            return False
+        return number == self.curr_number
 
     def next_number(self):
         self.curr_number = random.choice(self.valid_numbers)
