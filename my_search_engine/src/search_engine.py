@@ -23,8 +23,9 @@ def get_page_links(link):
         return []
 
 
-def get_google_page_links(link):
-    html_content = get_page(link)
+def get_google_page_links(link, html_content=None):
+    if html_content is None:
+        html_content = get_page(link)
     soup = BS(html_content, features='html.parser')
     links = []
     for element in soup.find_all('a', target="_blank", rel="noopener"):
