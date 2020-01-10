@@ -8,13 +8,13 @@ def test_next_number():
     def test(seed):
         random.seed(seed)
         master = Master()
-        numbers = []
+        numbers = set()
         for i in range(90):
             number = master.next_number()
             assert type(number) is int
             assert 0 < number < 91
             assert number not in numbers
-            numbers.append(number)
+            numbers.add(number)
     for i in range(8):
         test(i)
 

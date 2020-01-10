@@ -9,7 +9,7 @@ def test_init():
         random.seed(seed)
         ticket = Ticket()
         assert ticket.numbers is not None
-        valid_numbers = list(range(1, 90))
+        valid_numbers = list(range(1, 91))
         valid_numbers.append(None)
         for numbers in ticket.numbers:
             for number in numbers:
@@ -18,14 +18,12 @@ def test_init():
                     valid_numbers.remove(number)
         for numbers in ticket.numbers:
             assert numbers.count(None) == 4
-        for k in range(8):
+        for k in range(9):
             for i in range(len(ticket.numbers)):
-                for j in range(len(ticket.numbers[i])):
-                    t = k + 1
-                    if j == k and ticket.numbers[i][j]:
-                        assert (t * 10 - 10) <= ticket.numbers[i][j] <= (t * 10)
+                if ticket.numbers[i][k]:
+                    assert (k * 10) < ticket.numbers[i][k] <= (k * 10 + 10)
 
-    for number in range(10):
+    for number in range(1000):
         test(number)
 
 

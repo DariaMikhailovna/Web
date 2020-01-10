@@ -17,7 +17,7 @@ class Ticket:
     column_labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 
     def __init__(self):
-        valid_numbers = list(range(1, 90))
+        valid_numbers = list(range(1, 91))
         self.numbers = [[None] * 9 for _ in range(3)]
         for i in range(len(self.numbers)):
             count = 0
