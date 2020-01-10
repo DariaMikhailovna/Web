@@ -1,6 +1,7 @@
 import pytest
 import import_src
 import random
+from fixtures import *
 from ticket import Ticket
 
 
@@ -23,7 +24,7 @@ def test_init():
                 if ticket.numbers[i][k]:
                     assert (k * 10) < ticket.numbers[i][k] <= (k * 10 + 10)
 
-    for number in range(1000):
+    for number in range(10):
         test(number)
 
 
@@ -39,7 +40,5 @@ c |06|13|21|..|..|..|62|72|..|
 '''
 
 
-def test_str():
-    random.seed(123)
-    ticket = Ticket()
-    assert str(ticket) == test_ticket
+def test_str(sample_ticket):
+    assert str(sample_ticket) == test_ticket

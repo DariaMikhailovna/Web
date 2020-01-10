@@ -1,11 +1,8 @@
 import pytest
-import import_src
-from player import ComputerPlayer
-from ticket import Ticket
+from fixtures import *
 
 
-def test_move():
-    player = ComputerPlayer(Ticket())
+def test_move(player):
     for i in range(len(player.ticket.numbers)):
         for j in range(len(player.ticket.numbers[i])):
             if type(player.ticket.numbers[i][j]) == int:
