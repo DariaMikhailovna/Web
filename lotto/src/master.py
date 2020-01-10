@@ -3,7 +3,7 @@ from ticket import *
 
 class Master:
     def __init__(self):
-        self.valid_numbers = list(range(1, 90))
+        self.valid_numbers = list(range(1, 91))
         self.curr_number = None
 
     def is_honest(self, number):

@@ -3,14 +3,13 @@ import import_src
 import random
 from master import Master
 
-master = Master()
-
 
 def test_next_number():
     def test(seed):
         random.seed(seed)
+        master = Master()
         numbers = []
-        for i in range(10):
+        for i in range(90):
             number = master.next_number()
             assert type(number) is int
             assert 0 < number < 91
@@ -23,6 +22,7 @@ def test_next_number():
 def test_get_tickets():
     def test(seed):
         random.seed(seed)
+        master = Master()
         tickets = master.get_tickets()
         assert len(tickets) == 2
         assert tickets[0].numbers != tickets[1].numbers
