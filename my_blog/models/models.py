@@ -21,6 +21,9 @@ class Post(Base):
     user = relationship("User", back_populates="posts", lazy='joined')
     tags = relationship("Tag", secondary=tags_posts_table, back_populates="posts")
 
+    def __repr__(self):
+        return self.text
+
 
 class Tag(Base):
     __tablename__ = 'tags'
@@ -47,22 +50,19 @@ session_factory = sessionmaker(bind=engine)
 Session = scoped_session(session_factory)
 session = Session()
 
-user_info = {'id': 1, 'user_name': 'Dasha'}
-session.add(User(**user_info))
-user_info = {'id': 2, 'user_name': 'Masha'}
-session.add(User(**user_info))
-post_info = {'id': 1, 'user_id': 1, 'title': 'Dasha first post'}
-session.add(Post(**post_info))
-post_info = {'id': 2, 'user_id': 2, 'title': 'Masha first post'}
-session.add(Post(**post_info))
-post_info = {'id': 3, 'user_id': 1, 'title': 'Dasha second post'}
-session.add(Post(**post_info))
-tags_info = {'id': 1, 'name': 'Tag1'}
-session.add(Tag(**tags_info))
-tags_info = {'id': 2, 'name': 'Tag2'}
-session.add(Tag(**tags_info))
-# tags_posts_info = {'id': 1, 'tag_id': 1}
-# session.add(Tag(**post_info))
-# tags_posts_info_2 = {'id': 2, 'tag_id': 2}
-# session.add(Post(**post_info))
+user1 = User(user_name='Dasha')
+user2 = User(user_name='Masha')
+session.add(user1)
+session.add(user2)
+post1 = Post(user_id=user1.id, title='title1', text='text1')
+post2 = Post(user_id=user2.id, title='title2', text='text2')
+post3 = Post(user_id=user2.id, title='title3', text='text3')
+session.add(post1)
+session.add(post2)
+session.add(post3)
+tag1 = Tag(name='tag1', posts=[post1])
+tag2 = Tag(name='tag2', posts=[post2, post3])
+session.flush()
+posts = session.query(Post).join(tags_posts_table).filter(tags_posts_table.c.tag_id == 2)
+print(*posts)
 session.commit()
