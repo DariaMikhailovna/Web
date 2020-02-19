@@ -2,8 +2,16 @@ import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker, scoped_session
+from faker import Faker
+from random import randint
 
 Base = declarative_base()
+engine = sqlalchemy.create_engine('sqlite:///blog.db', echo=False)
+Base.metadata.create_all(engine)
+
+session_factory = sessionmaker(bind=engine)
+Session = scoped_session(session_factory)
+session = Session()
 
 tags_posts_table = sqlalchemy.Table('tags_posts', Base.metadata,
                                     sqlalchemy.Column('post_id', sqlalchemy.Integer, sqlalchemy.ForeignKey('posts.id')),
@@ -21,8 +29,12 @@ class Post(Base):
     user = relationship("User", back_populates="posts", lazy='joined')
     tags = relationship("Tag", secondary=tags_posts_table, back_populates="posts")
 
-    def __repr__(self):
-        return self.text
+    # def __repr__(self):
+    #     return self.text
+
+    @property
+    def short(self):
+        return self.text[:30]
 
 
 class Tag(Base):
@@ -43,26 +55,30 @@ class User(Base):
     posts = relationship("Post", back_populates="user")
 
 
-engine = sqlalchemy.create_engine('sqlite:///blog.db', echo=False)
-Base.metadata.create_all(engine)
+def make_content():
+    fake = Faker()
 
-session_factory = sessionmaker(bind=engine)
-Session = scoped_session(session_factory)
-session = Session()
+    for i in range(20):
+        user = User(user_name=fake.name())
+        session.add(user)
 
-user1 = User(user_name='Dasha')
-user2 = User(user_name='Masha')
-session.add(user1)
-session.add(user2)
-post1 = Post(user_id=user1.id, title='title1', text='text1')
-post2 = Post(user_id=user2.id, title='title2', text='text2')
-post3 = Post(user_id=user2.id, title='title3', text='text3')
-session.add(post1)
-session.add(post2)
-session.add(post3)
-tag1 = Tag(name='tag1', posts=[post1])
-tag2 = Tag(name='tag2', posts=[post2, post3])
-session.flush()
-posts = session.query(Post).join(tags_posts_table).filter(tags_posts_table.c.tag_id == 2)
-print(*posts)
-session.commit()
+    for i in range(10):
+        post = Post(user_id=randint(0, 19), title=fake.text(10), text=fake.text())
+        session.add(post)
+    session.commit()
+
+    # tag1 = Tag(name='tag1', posts=[post1])
+    # tag2 = Tag(name='tag2', posts=[post2, post3])
+    # session.flush()
+    # posts = session.query(Post).join(tags_posts_table).filter(tags_posts_table.c.tag_id == 2)
+    # print(*posts)
+
+
+def get_all_posts():
+    posts = session.query(Post).all()
+    return posts
+
+
+if __name__ == '__main__':
+    make_content()
+    print(*get_all_posts())
