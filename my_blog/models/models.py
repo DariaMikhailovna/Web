@@ -21,6 +21,7 @@ tags_posts_table = sqlalchemy.Table('tags_posts', Base.metadata,
 
 class Post(Base):
     __tablename__ = 'posts'
+
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
     title = sqlalchemy.Column(sqlalchemy.String(16))
@@ -29,8 +30,8 @@ class Post(Base):
     user = relationship("User", back_populates="posts", lazy='joined')
     tags = relationship("Tag", secondary=tags_posts_table, back_populates="posts")
 
-    # def __repr__(self):
-    #     return self.text
+    def __repr__(self):
+        return self.text
 
     @property
     def short(self):
@@ -42,8 +43,10 @@ class Tag(Base):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     name = sqlalchemy.Column(sqlalchemy.String(128), nullable=False)
-
     posts = relationship("Post", secondary=tags_posts_table, back_populates="tags")
+
+    def __repr__(self):
+        return self.name
 
 
 class User(Base):
@@ -51,8 +54,10 @@ class User(Base):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     user_name = sqlalchemy.Column(sqlalchemy.String(128), nullable=False)
-
     posts = relationship("Post", back_populates="user")
+
+    def __repr__(self):
+        return self.user_name
 
 
 def make_content():
