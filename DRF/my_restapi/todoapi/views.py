@@ -1,11 +1,10 @@
-from rest_framework.views import Response
-from rest_framework import viewsets
+from rest_framework.views import Response, APIView
 
 from .serializers import TodoItemSerializer
 from .models import TodoItem
 
 
-class TodoItemListView(viewsets.ViewSet):
+class TodoItemListView(APIView):
     def get(self, request):
         items = TodoItem.objects.all()
         serializer = TodoItemSerializer(items, many=True)
