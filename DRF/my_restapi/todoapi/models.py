@@ -15,6 +15,6 @@ class TodoItem(models.Model):
             transaction.on_commit(self.set_name_to_done)
 
     def set_name_to_done(self):
-        self.name = "Done"
+        self.title = "Done"
         self.save()
 

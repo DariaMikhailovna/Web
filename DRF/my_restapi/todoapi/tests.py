@@ -32,4 +32,4 @@ class TestCaseForTodoItemWithTransaction(APITransactionTestCase):
         TodoItemFactory(title="Test", done=False)
         todo_item = TodoItem.objects.first()
         todo_item.set_done_to_true()
-        self.assertEqual(todo_item.name, "Done")
+        self.assertEqual(todo_item.title, "Done")
