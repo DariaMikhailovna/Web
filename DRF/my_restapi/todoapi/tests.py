@@ -29,6 +29,7 @@ class TestCaseForTodoItem(APITestCase):
         todo_item_view = TodoItemListView.as_view()
         response = todo_item_view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]['id'], self.todo_item.id)
 
     #  APIClient
     def test_get_todo_item_api_client(self):
