@@ -6,30 +6,44 @@ from .models import TodoItem
 
 
 class TestCaseForTodoItemSimple(APISimpleTestCase):
-    def test_create_city_request_factory(self):
-        todo_item = TodoItemFactory.build(title="Test", done=True)
-        self.assertEqual(todo_item.title, "Test")
+    #  setUp
+    def setUp(self):
+        self.todo_item = TodoItemFactory.build(title="Test", done=True)
+
+    #  SimpleTestCase
+    def test_create_todo_item_request_factory(self):
+        self.assertEqual(self.todo_item.title, "Test")
 
 
+#  APITestCase
 class TestCaseForTodoItem(APITestCase):
+    #  setUpTestData
+    @classmethod
+    def setUpTestData(cls):
+        cls.todo_item = TodoItemFactory(title="Test", done=True)
 
+    #  RequestFactory
     def test_get_todo_item_request_factory(self):
-        todo_item = TodoItemFactory(title="Test", done=True)
         request_factory = APIRequestFactory()
         request = request_factory.get("/todo/api/todo")
         todo_item_view = TodoItemListView.as_view()
         response = todo_item_view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    #  APIClient
     def test_get_todo_item_api_client(self):
-        todo_item = TodoItemFactory(title="Test", done=True)
         response = self.client.get("/todo/api/todo")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class TestCaseForTodoItemWithTransaction(APITransactionTestCase):
-    def test_transactional_case_for_todo_item(self):
+    #  setUpClass
+    @classmethod
+    def setUpClass(cls):
         TodoItemFactory(title="Test", done=False)
+
+    #  TransactionalTestCase
+    def test_transactional_case_for_todo_item(self):
         todo_item = TodoItem.objects.first()
         todo_item.set_done_to_true()
         self.assertEqual(todo_item.title, "Done")
